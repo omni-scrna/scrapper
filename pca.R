@@ -14,6 +14,7 @@ suppressPackageStartupMessages({
   library(rhdf5)
   library(Matrix)
   library(scrapper)
+  library(BiocSingular)
 })
 
 script_dir <- (function() {
@@ -81,24 +82,39 @@ load_subset_matrix <- function(h5_path, selected_genes) {
 run_pca <- function(X, gene_ids, cell_ids, args) {
   # X: gene-by-cell sparse matrix (rows = genes).
   set.seed(args$random_seed)
-  pca <- runPca(X, number = args$n_components, num.threads = 1L)
 
-  # scrapper::runPca returns components as (n_components × n_cells)
-  # and rotation as (n_genes × n_components).
-  embedding <- t(pca$components)              # (n_cells, n_components)
-  loadings  <- pca$rotation                   # (n_genes, n_components)
-  variance  <- as.numeric(pca$variance.explained)
-  total_var <- if (!is.null(pca$total.variance)) {
-    as.numeric(pca$total.variance)
+  if (args$solver == "irlba") {
+    pca <- runPca(X, number = args$n_components, num.threads = 1L)
+    # scrapper::runPca returns components (n_components x n_cells), rotation (n_genes x n_components)
+    embedding <- t(pca$components)
+    loadings  <- pca$rotation
+    variance  <- as.numeric(pca$variance.explained)
+    total_var <- if (!is.null(pca$total.variance)) as.numeric(pca$total.variance) else sum(variance)
   } else {
-    sum(variance)
+    # random / exact via BiocSingular::runSVD on the transposed (cells x genes) matrix
+    bsparam <- switch(args$solver,
+      random = RandomParam(),
+      exact  = ExactParam(),
+      stop("unknown solver: ", args$solver)
+    )
+    # runSVD expects cells-as-rows; center across genes (i.e. center=TRUE centers columns)
+    svd <- runSVD(t(X), k = args$n_components, center = TRUE, BSPARAM = bsparam)
+    embedding <- svd$u %*% diag(svd$d)        # (n_cells, n_components)
+    loadings  <- svd$v                         # (n_genes, n_components)
+    n         <- ncol(X)
+    variance  <- svd$d^2 / (n - 1)
+    # total variance: sum of per-gene variances, computed sparse-safe
+    rs2 <- Matrix::rowSums(X^2)
+    rs1 <- Matrix::rowSums(X)
+    total_var <- sum((rs2 - rs1^2 / n) / (n - 1))
   }
+
   variance_ratio <- variance / total_var
 
   list(
-    embedding = matrix(as.double(embedding), nrow = nrow(embedding)),
-    loadings  = matrix(as.double(loadings),  nrow = nrow(loadings)),
-    variance  = as.double(variance),
+    embedding      = matrix(as.double(embedding), nrow = nrow(embedding)),
+    loadings       = matrix(as.double(loadings),  nrow = nrow(loadings)),
+    variance       = as.double(variance),
     variance_ratio = as.double(variance_ratio)
   )
 }

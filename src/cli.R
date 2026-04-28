@@ -21,7 +21,7 @@ build_pca_parser <- function() {
     make_option("--selected.genes", type = "character",
                 help = "Gzipped text file of selected gene ids (one per line)"),
     make_option("--solver", type = "character",
-                help = "PCA solver (scrapper: irlba)"),
+                help = "PCA solver (scrapper: irlba, random, exact)"),
     make_option("--n_components", type = "integer",
                 help = "Number of principal components to compute"),
     make_option("--random_seed", type = "integer",
@@ -55,7 +55,7 @@ parse_pca_args <- function() {
     stop("Missing required argument(s): ", paste(missing, collapse = ", "))
   }
 
-  valid_solvers <- c("irlba")
+  valid_solvers <- c("irlba", "random", "exact")
   if (!(args$solver %in% valid_solvers)) {
     stop("Invalid --solver: ", args$solver,
          " (valid: ", paste(valid_solvers, collapse = ", "), ")")
