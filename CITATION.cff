@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this module in your publication, please cite as below."
+type: software
+title: "Scrapper"
+abstract: |
+  A multi-stage wrapper for scrapper-based (libscran) scRNA pipelines
+authors:
+  - family-names: "carrillo"
+    given-names: "ben"
+    email: "ben.uzh@proton.me"
+date-released: "2026-04-28"
+version: "1.0.0"
+license: MIT
+url: "https://github.com/omni-scrna/scrapper"
+repository-code: "https://github.com/omni-scrna/scrapper"
+keywords:
+  - bioinformatics
+  - computational-biology
+  - benchmark
+  - omnibenchmark
+  - module
+references:
+  - title: "omnibenchmark port"
+    type: software
+    url: "https://github.com/scrna-bench/pipelines-r"
+  - title: "Original implementation"
+    type: software
+    url: "https://github.com/CHANGEME/scrapper"
