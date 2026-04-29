@@ -166,10 +166,7 @@ main <- function() {
               nrow(res$embedding), ncol(res$embedding),
               nrow(res$loadings),  ncol(res$loadings)))
 
-  out <- file.path(
-    args$output_dir,
-    sprintf("%s_%s_n_%d.h5", args$name, args$solver, args$n_components)
-  )
+  out <- file.path(args$output_dir, sprintf("%s_pca.h5", args$name))
   write_output(out, res, loaded$cell_ids, loaded$gene_ids, args)
   cat(sprintf("  wrote: %s\n", out))
 }
