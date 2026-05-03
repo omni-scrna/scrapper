@@ -170,7 +170,7 @@ main <- function() {
               nrow(res$loadings),  ncol(res$loadings)))
 
   out <- file.path(args$output_dir, sprintf("%s_pca.h5", args$name))
-  write_output(out, res, loaded$cell_ids, loaded$gene_ids, args)
+  write_output(out, res, colnames(m), rownames(m), args)
   cat(sprintf("  wrote: %s\n", out))
 }
 
