@@ -149,7 +149,7 @@ write_output <- function(path, res, cell_ids, gene_ids, args) {
 main <- function() {
   args <- parse_pca_args()
   cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
-  for (k in c("output_dir", "name", "normalized_h5", "selected_genes",
+  for (k in c("output_dir", "name", "input_h5",
               "solver", "n_components", "random_seed")) {
     cat(sprintf("  %s: %s\n", k, args[[k]]))
   }
