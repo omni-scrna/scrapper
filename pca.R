@@ -29,58 +29,6 @@ OUTPUT_FORMAT_VERSION <- "1"
 TOOL <- "scrapper"
 
 
-load_selected_genes <- function(path) {
-  con <- if (endsWith(path, ".gz")) gzfile(path, "rt") else file(path, "rt")
-  on.exit(close(con))
-  lines <- readLines(con)
-  trimws(lines[nzchar(trimws(lines))])
-}
-
-
-load_subset_matrix <- function(h5_path, selected_genes) {
-  # Load TENx HDF5 (genes x cells) and subset to selected_genes.
-  # Returns list(X = dgCMatrix genes-as-rows, gene_ids, cell_ids).
-  data    <- as.numeric(h5read(h5_path, "matrix/data"))
-  indices <- as.integer(h5read(h5_path, "matrix/indices"))
-  indptr  <- as.integer(h5read(h5_path, "matrix/indptr"))
-  shape   <- as.integer(h5read(h5_path, "matrix/shape"))  # c(n_genes, n_cells)
-
-  gene_ids <- tryCatch(
-    as.character(h5read(h5_path, "matrix/features/id")),
-    error = function(e) tryCatch(
-      as.character(h5read(h5_path, "matrix/genes")),
-      error = function(e) sprintf("gene_%d", seq_len(shape[1]) - 1L)
-    )
-  )
-  cell_ids <- tryCatch(
-    as.character(h5read(h5_path, "matrix/barcodes")),
-    error = function(e) sprintf("cell_%d", seq_len(shape[2]) - 1L)
-  )
-
-  # TENx HDF5 stores data in CSC order (indptr = column pointers),
-  # i.e. columns are cells. dgCMatrix is also CSC; the matrix below is
-  # therefore genes-as-rows, cells-as-columns.
-  m <- sparseMatrix(
-    i = indices + 1L, p = indptr, x = data,
-    dims = shape, index1 = TRUE, repr = "C"
-  )
-
-  missing <- setdiff(selected_genes, gene_ids)
-  if (length(missing) > 0) {
-    sample <- head(sort(missing), 10)
-    stop(sprintf(
-      "%d selected gene(s) not present in normalized.h5; first %d: %s",
-      length(missing), length(sample), paste(sample, collapse = ", ")
-    ))
-  }
-  mask <- gene_ids %in% selected_genes
-  list(X = m[mask, , drop = FALSE],
-       gene_ids = gene_ids[mask],
-       cell_ids = cell_ids)
-}
-
-
-#run_pca <- function(X, gene_ids, cell_ids, args) {
 run_pca <- function(X, args) {
   # X: gene-by-cell sparse matrix (rows = genes).
   set.seed(args$random_seed)
