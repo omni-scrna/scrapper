@@ -10,5 +10,6 @@ dependencies:
 - bioconductor-biocsingular *
 - bioconductor-rhdf5 *
 - bioconductor-delayedarray *
+- bioconductor-hdf5array *
 - r-matrix *
 - r-optparse *
