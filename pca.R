@@ -13,6 +13,7 @@
 suppressPackageStartupMessages({
   library(rhdf5)
   library(Matrix)
+  library(HDF5Array)
   library(scrapper)
   library(BiocSingular)
 })
@@ -79,7 +80,8 @@ load_subset_matrix <- function(h5_path, selected_genes) {
 }
 
 
-run_pca <- function(X, gene_ids, cell_ids, args) {
+#run_pca <- function(X, gene_ids, cell_ids, args) {
+run_pca <- function(X, args) {
   # X: gene-by-cell sparse matrix (rows = genes).
   set.seed(args$random_seed)
 
@@ -147,27 +149,28 @@ write_output <- function(path, res, cell_ids, gene_ids, args) {
 main <- function() {
   args <- parse_pca_args()
   cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
-  for (k in c("output_dir", "name", "normalized_h5", "selected_genes",
+  for (k in c("output_dir", "name", "input_h5",
               "solver", "n_components", "random_seed")) {
     cat(sprintf("  %s: %s\n", k, args[[k]]))
   }
 
   dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
-  selected <- load_selected_genes(args$selected_genes)
-  cat(sprintf("  selected genes: %d\n", length(selected)))
+  #selected <- load_selected_genes(args$selected_genes)
+  #cat(sprintf("  selected genes: %d\n", length(selected)))
 
-  loaded <- load_subset_matrix(args$normalized_h5, selected)
+  m <- TENxMatrix(args$input_h5, group = "matrix")
+  m <- as(m, "dgCMatrix") # read into memory
   cat(sprintf("  matrix (genes x cells): %d x %d\n",
-              nrow(loaded$X), ncol(loaded$X)))
+              nrow(m), ncol(m)))
 
-  res <- run_pca(loaded$X, loaded$gene_ids, loaded$cell_ids, args)
+  res <- run_pca(m, args)
   cat(sprintf("  embedding: %d x %d, loadings: %d x %d\n",
               nrow(res$embedding), ncol(res$embedding),
               nrow(res$loadings),  ncol(res$loadings)))
 
   out <- file.path(args$output_dir, sprintf("%s_pca.h5", args$name))
-  write_output(out, res, loaded$cell_ids, loaded$gene_ids, args)
+  write_output(out, res, colnames(m), rownames(m), args)
   cat(sprintf("  wrote: %s\n", out))
 }
 
