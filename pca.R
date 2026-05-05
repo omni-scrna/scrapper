@@ -70,28 +70,28 @@ run_pca <- function(X, args) {
 }
 
 
-write_output <- function(path, res, cell_ids, gene_ids, args) {
-  if (file.exists(path)) file.remove(path)
-  h5createFile(path)
-
-  h5write(res$embedding,       path, "embedding")
-  h5write(res$loadings,        path, "loadings")
-  h5write(res$variance,        path, "variance")
-  h5write(res$variance_ratio,  path, "variance_ratio")
-  h5write(as.character(cell_ids), path, "cell_ids")
-  h5write(as.character(gene_ids), path, "gene_ids")
-
-  fid <- H5Fopen(path)
-  on.exit(H5Fclose(fid), add = TRUE)
-
-  scrapper_version <- as.character(packageVersion("scrapper"))
-  h5writeAttribute(OUTPUT_FORMAT_VERSION, fid, "format_version")
-  h5writeAttribute(TOOL,                  fid, "tool")
-  h5writeAttribute(scrapper_version,      fid, "tool_version")
-  h5writeAttribute(args$solver,           fid, "solver")
-  h5writeAttribute(as.integer(args$n_components), fid, "n_components")
-  h5writeAttribute(as.integer(args$random_seed),  fid, "random_seed")
-}
+#write_output <- function(path, res, cell_ids, gene_ids, args) {
+#  if (file.exists(path)) file.remove(path)
+#  h5createFile(path)
+#
+#  h5write(res$embedding,       path, "embedding")
+#  h5write(res$loadings,        path, "loadings")
+#  h5write(res$variance,        path, "variance")
+#  h5write(res$variance_ratio,  path, "variance_ratio")
+#  h5write(as.character(cell_ids), path, "cell_ids")
+#  h5write(as.character(gene_ids), path, "gene_ids")
+#
+#  fid <- H5Fopen(path)
+#  on.exit(H5Fclose(fid), add = TRUE)
+#
+#  scrapper_version <- as.character(packageVersion("scrapper"))
+#  h5writeAttribute(OUTPUT_FORMAT_VERSION, fid, "format_version")
+#  h5writeAttribute(TOOL,                  fid, "tool")
+#  h5writeAttribute(scrapper_version,      fid, "tool_version")
+#  h5writeAttribute(args$solver,           fid, "solver")
+#  h5writeAttribute(as.integer(args$n_components), fid, "n_components")
+#  h5writeAttribute(as.integer(args$random_seed),  fid, "random_seed")
+#}
 
 
 main <- function() {
@@ -117,8 +117,13 @@ main <- function() {
               nrow(res$embedding), ncol(res$embedding),
               nrow(res$loadings),  ncol(res$loadings)))
 
-  out <- file.path(args$output_dir, sprintf("%s_pca.h5", args$name))
-  write_output(out, res, colnames(m), rownames(m), args)
+  out <- file.path(args$output_dir, sprintf("%s_pcas.h5", args$name))
+  cat("output_file:", out, "\n")
+  writeTENxMatrix(res$embedding, out, group="matrix")
+  # come back to the sidecar in a future life
+  #out <- file.path(args$output_dir, sprintf("%s_pca.h5", args$name))
+  #write_output(out, res, colnames(m), rownames(m), args)
+
   cat(sprintf("  wrote: %s\n", out))
 }
 
