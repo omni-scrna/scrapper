@@ -56,8 +56,8 @@ run_pca <- function(X, args) {
 
   variance_ratio <- variance / total_var
   # decorate embeddings w/ row/colnames
-  rownames(embeddings) <- colnames(X) 
-  colnames(embeddings) <- paste0("PC", seq_len(ncol(embeddings)))
+  rownames(embedding) <- colnames(X) 
+  colnames(embedding) <- paste0("PC", seq_len(ncol(embedding)))
 
   # loadings, extra furniture are here in case needed as output later
   list(
