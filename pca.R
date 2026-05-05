@@ -11,7 +11,6 @@
 #   should move to a dedicated upstream cleanup stage. See load_subset_matrix.
 
 suppressPackageStartupMessages({
-  library(rhdf5)
   library(Matrix)
   library(HDF5Array)
   library(scrapper)
@@ -25,62 +24,6 @@ script_dir <- (function() {
 })()
 source(file.path(script_dir, "src", "cli.R"))
 
-OUTPUT_FORMAT_VERSION <- "1"
-TOOL <- "scrapper"
-
-
-load_selected_genes <- function(path) {
-  con <- if (endsWith(path, ".gz")) gzfile(path, "rt") else file(path, "rt")
-  on.exit(close(con))
-  lines <- readLines(con)
-  trimws(lines[nzchar(trimws(lines))])
-}
-
-
-load_subset_matrix <- function(h5_path, selected_genes) {
-  # Load TENx HDF5 (genes x cells) and subset to selected_genes.
-  # Returns list(X = dgCMatrix genes-as-rows, gene_ids, cell_ids).
-  data    <- as.numeric(h5read(h5_path, "matrix/data"))
-  indices <- as.integer(h5read(h5_path, "matrix/indices"))
-  indptr  <- as.integer(h5read(h5_path, "matrix/indptr"))
-  shape   <- as.integer(h5read(h5_path, "matrix/shape"))  # c(n_genes, n_cells)
-
-  gene_ids <- tryCatch(
-    as.character(h5read(h5_path, "matrix/features/id")),
-    error = function(e) tryCatch(
-      as.character(h5read(h5_path, "matrix/genes")),
-      error = function(e) sprintf("gene_%d", seq_len(shape[1]) - 1L)
-    )
-  )
-  cell_ids <- tryCatch(
-    as.character(h5read(h5_path, "matrix/barcodes")),
-    error = function(e) sprintf("cell_%d", seq_len(shape[2]) - 1L)
-  )
-
-  # TENx HDF5 stores data in CSC order (indptr = column pointers),
-  # i.e. columns are cells. dgCMatrix is also CSC; the matrix below is
-  # therefore genes-as-rows, cells-as-columns.
-  m <- sparseMatrix(
-    i = indices + 1L, p = indptr, x = data,
-    dims = shape, index1 = TRUE, repr = "C"
-  )
-
-  missing <- setdiff(selected_genes, gene_ids)
-  if (length(missing) > 0) {
-    sample <- head(sort(missing), 10)
-    stop(sprintf(
-      "%d selected gene(s) not present in normalized.h5; first %d: %s",
-      length(missing), length(sample), paste(sample, collapse = ", ")
-    ))
-  }
-  mask <- gene_ids %in% selected_genes
-  list(X = m[mask, , drop = FALSE],
-       gene_ids = gene_ids[mask],
-       cell_ids = cell_ids)
-}
-
-
-#run_pca <- function(X, gene_ids, cell_ids, args) {
 run_pca <- function(X, args) {
   # X: gene-by-cell sparse matrix (rows = genes).
   set.seed(args$random_seed)
@@ -112,39 +55,18 @@ run_pca <- function(X, args) {
   }
 
   variance_ratio <- variance / total_var
+  # decorate embeddings w/ row/colnames
+  rownames(embedding) <- colnames(X) 
+  colnames(embedding) <- paste0("PC", seq_len(ncol(embedding)))
 
+  # loadings, etc are here in case needed as output later
   list(
-    embedding      = matrix(as.double(embedding), nrow = nrow(embedding)),
+    embedding      = embedding, 
     loadings       = matrix(as.double(loadings),  nrow = nrow(loadings)),
     variance       = as.double(variance),
     variance_ratio = as.double(variance_ratio)
   )
 }
-
-
-write_output <- function(path, res, cell_ids, gene_ids, args) {
-  if (file.exists(path)) file.remove(path)
-  h5createFile(path)
-
-  h5write(res$embedding,       path, "embedding")
-  h5write(res$loadings,        path, "loadings")
-  h5write(res$variance,        path, "variance")
-  h5write(res$variance_ratio,  path, "variance_ratio")
-  h5write(as.character(cell_ids), path, "cell_ids")
-  h5write(as.character(gene_ids), path, "gene_ids")
-
-  fid <- H5Fopen(path)
-  on.exit(H5Fclose(fid), add = TRUE)
-
-  scrapper_version <- as.character(packageVersion("scrapper"))
-  h5writeAttribute(OUTPUT_FORMAT_VERSION, fid, "format_version")
-  h5writeAttribute(TOOL,                  fid, "tool")
-  h5writeAttribute(scrapper_version,      fid, "tool_version")
-  h5writeAttribute(args$solver,           fid, "solver")
-  h5writeAttribute(as.integer(args$n_components), fid, "n_components")
-  h5writeAttribute(as.integer(args$random_seed),  fid, "random_seed")
-}
-
 
 main <- function() {
   args <- parse_pca_args()
@@ -156,9 +78,6 @@ main <- function() {
 
   dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
-  #selected <- load_selected_genes(args$selected_genes)
-  #cat(sprintf("  selected genes: %d\n", length(selected)))
-
   m <- TENxMatrix(args$input_h5, group = "matrix")
   m <- as(m, "dgCMatrix") # read into memory
   cat(sprintf("  matrix (genes x cells): %d x %d\n",
@@ -169,8 +88,9 @@ main <- function() {
               nrow(res$embedding), ncol(res$embedding),
               nrow(res$loadings),  ncol(res$loadings)))
 
-  out <- file.path(args$output_dir, sprintf("%s_pca.h5", args$name))
-  write_output(out, res, colnames(m), rownames(m), args)
+  out <- file.path(args$output_dir, sprintf("%s_pcas.h5", args$name))
+  cat("output_file:", out, "\n")
+  writeTENxMatrix(res$embedding, out, group="matrix")
   cat(sprintf("  wrote: %s\n", out))
 }
 

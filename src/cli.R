@@ -18,8 +18,6 @@ build_pca_parser <- function() {
                 help = "Module name/identifier"),
     make_option("--normalized_selected.h5", type = "character",
                 help = "TENx-format HDF5 of normalized expression (genes x cells)"),
-    #make_option("--selected.genes", type = "character",
-    #            help = "Gzipped text file of selected gene ids (one per line)"),
     make_option("--solver", type = "character",
                 help = "PCA solver (scrapper: irlba, random, exact)"),
     make_option("--n_components", type = "integer",
@@ -42,7 +40,6 @@ parse_pca_args <- function() {
     output_dir      = raw$output_dir,
     name            = raw$name,
     input_h5        = raw[["normalized_selected.h5"]],
-    #selected_genes  = raw[["selected.genes"]],
     solver          = raw$solver,
     n_components    = raw$n_components,
     random_seed     = raw$random_seed
