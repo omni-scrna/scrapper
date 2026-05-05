@@ -59,9 +59,9 @@ run_pca <- function(X, args) {
   rownames(embedding) <- colnames(X) 
   colnames(embedding) <- paste0("PC", seq_len(ncol(embedding)))
 
-  # loadings, extra furniture are here in case needed as output later
+  # loadings, etc are here in case needed as output later
   list(
-    embedding      = matrix(as.double(embedding), nrow = nrow(embedding)),
+    embedding      = embedding, 
     loadings       = matrix(as.double(loadings),  nrow = nrow(loadings)),
     variance       = as.double(variance),
     variance_ratio = as.double(variance_ratio)
