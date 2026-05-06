@@ -92,7 +92,6 @@ main <- function() {
   cat("output_file:", out, "\n")
   #writeTENxMatrix(res$embedding, out, group="matrix")
   write.table(res$embedding, out, sep = "\t", quote = FALSE, row.names = TRUE)
-)
   cat(sprintf("  wrote: %s\n", out))
 }
 
