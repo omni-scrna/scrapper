@@ -88,9 +88,11 @@ main <- function() {
               nrow(res$embedding), ncol(res$embedding),
               nrow(res$loadings),  ncol(res$loadings)))
 
-  out <- file.path(args$output_dir, sprintf("%s_pcas.h5", args$name))
+  out <- file.path(args$output_dir, sprintf("%s_pcas.tsv", args$name))
   cat("output_file:", out, "\n")
-  writeTENxMatrix(res$embedding, out, group="matrix")
+  #writeTENxMatrix(res$embedding, out, group="matrix")
+  write.table(res$embedding, out, sep = "\t", quote = FALSE, row.names = TRUE)
+)
   cat(sprintf("  wrote: %s\n", out))
 }
 
