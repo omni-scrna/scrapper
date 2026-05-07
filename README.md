@@ -26,15 +26,7 @@ pixi run Rscript pca.R \
   --random_seed <int>
 ```
 
-Output: `<output_dir>/<name>_<solver>_n_<n_components>.h5` — see [`docs/pca_output.md`](docs/pca_output.md) for the full format spec. The schema is shared with the scanpy-backed module.
-
-#### Validation
-
-```sh
-pixi run validate <output_dir>/<name>_<solver>_n_<n_components>.h5
-```
-
-Exit codes: `0` = valid, `1` = validation failure, `2` = IO / usage error.
+Output: `<output_dir>/<name>_<solver>_n_<n_components>.tsv`
 
 ## Conda environment export
 
