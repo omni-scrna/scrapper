@@ -93,7 +93,6 @@ main <- function() {
   cat("output_file:", out, "\n")
   fwrite(data.frame(cell_id = rownames(x), res$embedding), out, 
          sep = "\t", quote = FALSE, row.names = TRUE)
-  write.table(res$embedding, out, sep = "\t", quote = FALSE, row.names = TRUE)
   cat(sprintf("  wrote: %s\n", out))
 }
 
