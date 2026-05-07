@@ -91,7 +91,7 @@ main <- function() {
 
   out <- file.path(args$output_dir, sprintf("%s_pcas.tsv", args$name))
   cat("output_file:", out, "\n")
-  fwrite(data.frame(cell_id = rownames(x), res$embedding), out, 
+  fwrite(data.frame(cell_id = rownames(res$embedding), res$embedding), out, 
          sep = "\t", quote = FALSE, row.names = TRUE)
   cat(sprintf("  wrote: %s\n", out))
 }
