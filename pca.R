@@ -15,6 +15,7 @@ suppressPackageStartupMessages({
   library(HDF5Array)
   library(scrapper)
   library(BiocSingular)
+  library(data.table)
 })
 
 script_dir <- (function() {
@@ -90,8 +91,8 @@ main <- function() {
 
   out <- file.path(args$output_dir, sprintf("%s_pcas.tsv", args$name))
   cat("output_file:", out, "\n")
-  #writeTENxMatrix(res$embedding, out, group="matrix")
-  write.table(res$embedding, out, sep = "\t", quote = FALSE, row.names = TRUE)
+  fwrite(data.frame(cell_id = rownames(res$embedding), res$embedding), out, 
+         sep = "\t", quote = FALSE, row.names = FALSE)
   cat(sprintf("  wrote: %s\n", out))
 }
 
