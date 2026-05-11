@@ -60,3 +60,48 @@ parse_pca_args <- function() {
 
   args
 }
+
+build_select_parser <- function() {
+  option_list <- list(
+    make_option("--output_dir", type = "character",
+                help = "Output directory for results"),
+    make_option("--name", type = "character",
+                help = "Module name/identifier"),
+    make_option("--normalized.h5", type = "character",
+                help = "TENx-format HDF5 of normalized expression (genes x cells)"),
+    make_option("--number_selected", type = "integer",
+                help = "Number of highly variable genes to select"),
+    # accepted but unused — passed by the stage when seurat inputs are present
+    make_option("--rawdata.h5ad", type = "character", default = NULL,
+                help = "Ignored"),
+    make_option("--filtered.cellids", type = "character", default = NULL,
+                help = "Ignored"),
+    make_option("--batch_variable", type = "character", default = NULL,
+                help = "Ignored")
+  )
+  OptionParser(
+    option_list = option_list,
+    description = "OmniBenchmark gene selection module (scrapper)"
+  )
+}
+
+parse_select_args <- function() {
+  parser <- build_select_parser()
+  raw <- parse_args(parser)
+
+  args <- list(
+    output_dir      = raw$output_dir,
+    name            = raw$name,
+    input_h5        = raw[["normalized.h5"]],
+    number_selected = raw$number_selected
+  )
+
+  required <- names(args)
+  missing <- required[vapply(args[required], function(v) is.null(v) || is.na(v),
+                             logical(1))]
+  if (length(missing) > 0) {
+    stop("Missing required argument(s): ", paste(missing, collapse = ", "))
+  }
+
+  args
+}
