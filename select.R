@@ -30,8 +30,10 @@ main <- function() {
   cat(sprintf("  matrix (genes x cells): %d x %d\n", nrow(mat), ncol(mat)))
 
   gene_var <- modelGeneVariances(mat)
-  hvgs <- chooseHighlyVariableGenes(gene_var$statistics$residuals,
-                                    top = args$number_selected)
+  hvgs <- chooseHighlyVariableGenes(
+    gene_var$statistics$residuals,
+    top = args$number_selected
+    )
   sel_feats <- rownames(mat)[hvgs]
   cat(sprintf("  selected %d features\n", length(sel_feats)))
 
