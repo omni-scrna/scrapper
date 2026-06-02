@@ -16,6 +16,8 @@ suppressPackageStartupMessages({
   library(scrapper)
   library(BiocSingular)
   library(data.table)
+  library(rhdf5)
+  library(yaml)
 })
 
 script_dir <- (function() {
@@ -24,6 +26,7 @@ script_dir <- (function() {
   if (length(m) > 0) dirname(sub("^--file=", "", cargs[[m]])) else getwd()
 })()
 source(file.path(script_dir, "src", "cli.R"))
+
 
 run_pca <- function(X, args) {
   # X: gene-by-cell sparse matrix (rows = genes).
@@ -56,16 +59,64 @@ run_pca <- function(X, args) {
   }
 
   variance_ratio <- variance / total_var
-  # decorate embeddings w/ row/colnames
+  # decorate embeddings/loadings w/ row/colnames
   rownames(embedding) <- colnames(X) 
   colnames(embedding) <- paste0("PC", seq_len(ncol(embedding)))
+  rownames(loadings)  <- rownames(X)
+  colnames(loadings)  <- paste0("PC", seq_len(ncol(loadings)))
 
   # loadings, etc are here in case needed as output later
   list(
     embedding      = embedding, 
-    loadings       = matrix(as.double(loadings),  nrow = nrow(loadings)),
+    loadings       = loadings,
     variance       = as.double(variance),
     variance_ratio = as.double(variance_ratio)
+  )
+}
+
+run_pca_per_batch <- function(m, args) {
+  # load cell ids and batch assignments from raw data
+  cell_ids_all <- as.character(h5read(args$rawdata_h5ad, "obs/_index"))
+  batch_raw <- h5read(args$rawdata_h5ad, paste0("obs/", args$batch_variable))|>
+    as.character()
+  
+  # keep only cells present in normalized data
+  cell_ids_keep <- colnames(m)
+  idx_keep <- match(cell_ids_keep, cell_ids_all)
+  batch_keep <- batch_raw[idx_keep]
+
+  # get all unique batch labels
+  batches <- unique(batch_keep)
+
+  cat(sprintf("  per-batch PCA: %d batches (%s)\n",
+    length(batches), paste(batches, collapse = ", ")))
+
+  # run PCA separately for each batch (we should consider parallelizing this)
+  pca_res_ls <- batches |> lapply(function(b) {
+    cells_batch <- which(batch_keep == b)
+    m_batch <- m[, cells_batch]
+    cat(sprintf("    batch '%s': %d cells\n", b, ncol(m_batch)))
+    tmp_res <- run_pca(m_batch, args)
+    list(
+      embedding = data.table(
+        cell_id = colnames(m_batch),
+        tmp_res$embedding,
+        batch_id = b
+      ),
+      loadings = data.table(
+        gene   = rownames(tmp_res$loadings),
+        tmp_res$loadings,
+        batch_id = b
+      )
+    )
+  })
+  
+  # concatenate all embeddings and loadings into a single data.table
+  embeddings_dt <- rbindlist(lapply(pca_res_ls, `[[`, "embedding"))
+  loadings_dt   <- rbindlist(lapply(pca_res_ls, `[[`, "loadings"))
+  list( # could also consider saving variances
+    embeddings = embeddings_dt,
+    loadings   = loadings_dt
   )
 }
 
@@ -73,27 +124,43 @@ main <- function() {
   args <- parse_pca_args()
   cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
   for (k in c("output_dir", "name", "input_h5",
-              "solver", "n_components", "random_seed")) {
+              "solver", "n_components", "random_seed", "per_batch")) {
     cat(sprintf("  %s: %s\n", k, args[[k]]))
   }
 
   dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
   m <- TENxMatrix(args$input_h5, group = "matrix")
-  m <- as(m, "dgCMatrix") # read into memory
-  cat(sprintf("  matrix (genes x cells): %d x %d\n",
-              nrow(m), ncol(m)))
+  m <- as(m, "dgCMatrix")
+  cat(sprintf("  matrix (genes x cells): %d x %d\n", nrow(m), ncol(m)))
 
-  res <- run_pca(m, args)
-  cat(sprintf("  embedding: %d x %d, loadings: %d x %d\n",
-              nrow(res$embedding), ncol(res$embedding),
-              nrow(res$loadings),  ncol(res$loadings)))
+  if (args$per_batch) {
+    res <- run_pca_per_batch(m, args)
 
-  out <- file.path(args$output_dir, sprintf("%s_pcas.tsv", args$name))
-  cat("output_file:", out, "\n")
-  fwrite(data.frame(cell_id = rownames(res$embedding), res$embedding), out, 
-         sep = "\t", quote = FALSE, row.names = FALSE)
-  cat(sprintf("  wrote: %s\n", out))
+    out_embeddings_tsv <- file.path(args$output_dir, sprintf("%s_pcas_per_batch.tsv", args$name))
+    fwrite(res$embeddings, out_embeddings_tsv, sep = "\t", quote = FALSE, row.names = FALSE)
+    cat(sprintf("  wrote: %s\n", out_embeddings_tsv))
+
+    out_loadings_tsv  <- file.path(args$output_dir, sprintf("%s_loadings_per_batch.tsv", args$name))
+    fwrite(res$loadings, out_loadings_tsv, sep = "\t", quote = FALSE, row.names = FALSE)
+    cat(sprintf("  wrote: %s\n", out_loadings_tsv))
+
+  } else {
+    res <- run_pca(m, args)
+    cat(sprintf("  embedding: %d x %d, loadings: %d x %d\n",
+      nrow(res$embedding), ncol(res$embedding),
+      nrow(res$loadings),  ncol(res$loadings)))
+
+    out_embeddings_tsv <- file.path(args$output_dir, sprintf("%s_pcas.tsv", args$name))
+    fwrite(data.frame(cell_id = rownames(res$embedding), res$embedding), out_embeddings_tsv,
+      sep = "\t", quote = FALSE, row.names = FALSE)
+    cat(sprintf("  wrote: %s\n", out_embeddings_tsv))
+
+    out_loadings_tsv <- file.path(args$output_dir, sprintf("%s_pcas.tsv", args$name))
+    fwrite(data.frame(gene = rownames(res$loadings), res$loadings), out_loadings_tsv,
+      sep = "\t", quote = FALSE, row.names = FALSE)
+    cat(sprintf("  wrote: %s\n", out_loadings_tsv))
+  }
 }
 
 if (sys.nframe() == 0L) {

@@ -5,5 +5,7 @@ suppressPackageStartupMessages({
   library(DelayedArray)
   library(Matrix)
   library(optparse)
+  library(yaml)
+  library(data.table)
 })
 cat("OK\n")

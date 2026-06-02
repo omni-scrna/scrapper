@@ -8,7 +8,10 @@
 #   must pass everything explicitly so runs are fully reproducible from the
 #   invocation line.
 
-suppressPackageStartupMessages(library(optparse))
+suppressPackageStartupMessages({
+  library(optparse)
+  library(yaml)
+})
 
 build_pca_parser <- function() {
   option_list <- list(
@@ -23,7 +26,13 @@ build_pca_parser <- function() {
     make_option("--n_components", type = "integer",
                 help = "Number of principal components to compute"),
     make_option("--random_seed", type = "integer",
-                help = "Seed for randomized solvers (and for reproducibility)")
+                help = "Seed for randomized solvers (and for reproducibility)"),
+    make_option("--rawdata.h5ad", type = "character", default = NULL,
+                help = "AnnData h5ad (obs read for batch labels; per-batch mode only)"),
+    make_option("--batch_info.yaml", type = "character", default = NULL,
+                help = "YAML file with batch_var field (per-batch mode only)"),
+    make_option("--per_batch", type = "logical", default = FALSE,
+                help = "Compute PCA per batch (TRUE) or globally (FALSE)")
   )
 
   OptionParser(
@@ -42,10 +51,13 @@ parse_pca_args <- function() {
     input_h5        = raw[["normalized_selected.h5"]],
     solver          = raw$solver,
     n_components    = raw$n_components,
-    random_seed     = raw$random_seed
+    random_seed     = raw$random_seed,
+    rawdata_h5ad    = raw[["rawdata.h5ad"]],
+    batch_info_yaml = raw[["batch_info.yaml"]],
+    per_batch       = raw$per_batch
   )
 
-  required <- names(args)
+  required <- c("output_dir", "name", "input_h5", "solver", "n_components", "random_seed")
   missing <- required[vapply(args[required], function(v) is.null(v) || is.na(v),
                              logical(1))]
   if (length(missing) > 0) {
@@ -56,6 +68,16 @@ parse_pca_args <- function() {
   if (!(args$solver %in% valid_solvers)) {
     stop("Invalid --solver: ", args$solver,
          " (valid: ", paste(valid_solvers, collapse = ", "), ")")
+  }
+
+  if (isTRUE(args$per_batch)) {
+    pb_required <- c("rawdata_h5ad", "batch_info_yaml")
+    pb_missing <- pb_required[vapply(args[pb_required], is.null, logical(1))]
+    if (length(pb_missing) > 0) {
+      stop("Per-batch mode requires: ", paste(pb_missing, collapse = ", "))
+    }
+    batch_info <- yaml::read_yaml(args$batch_info_yaml)
+    args$batch_variable <- batch_info$batch_var
   }
 
   args
