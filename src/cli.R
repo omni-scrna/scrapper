@@ -79,6 +79,8 @@ build_select_parser <- function() {
     make_option("--filtered.cellids", type = "character", default = NULL,
                 help = "Ignored"),
     make_option("--batch_variable", type = "character", default = NULL,
+                help = "Ignored"),
+    make_option("--properties.info", type = "character", default = NULL,
                 help = "Ignored")
   )
   OptionParser(
