@@ -25,6 +25,7 @@ script_dir <- (function() {
 })()
 source(file.path(script_dir, "src", "cli.R"))
 
+
 run_pca <- function(X, args) {
   # X: gene-by-cell sparse matrix (rows = genes).
   set.seed(args$random_seed)
@@ -56,18 +57,21 @@ run_pca <- function(X, args) {
   }
 
   variance_ratio <- variance / total_var
-  # decorate embeddings w/ row/colnames
+  # decorate embeddings/loadings w/ row/colnames
   rownames(embedding) <- colnames(X) 
   colnames(embedding) <- paste0("PC", seq_len(ncol(embedding)))
+  rownames(loadings)  <- rownames(X)
+  colnames(loadings)  <- paste0("PC", seq_len(ncol(loadings)))
 
   # loadings, etc are here in case needed as output later
   list(
     embedding      = embedding, 
-    loadings       = matrix(as.double(loadings),  nrow = nrow(loadings)),
+    loadings       = loadings,
     variance       = as.double(variance),
     variance_ratio = as.double(variance_ratio)
   )
 }
+
 
 main <- function() {
   args <- parse_pca_args()
@@ -80,20 +84,23 @@ main <- function() {
   dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
   m <- TENxMatrix(args$input_h5, group = "matrix")
-  m <- as(m, "dgCMatrix") # read into memory
-  cat(sprintf("  matrix (genes x cells): %d x %d\n",
-              nrow(m), ncol(m)))
+  m <- as(m, "dgCMatrix")
+  cat(sprintf("  matrix (genes x cells): %d x %d\n", nrow(m), ncol(m)))
 
   res <- run_pca(m, args)
   cat(sprintf("  embedding: %d x %d, loadings: %d x %d\n",
-              nrow(res$embedding), ncol(res$embedding),
-              nrow(res$loadings),  ncol(res$loadings)))
+    nrow(res$embedding), ncol(res$embedding),
+    nrow(res$loadings),  ncol(res$loadings)))
 
-  out <- file.path(args$output_dir, sprintf("%s_pcas.tsv", args$name))
-  cat("output_file:", out, "\n")
-  fwrite(data.frame(cell_id = rownames(res$embedding), res$embedding), out, 
-         sep = "\t", quote = FALSE, row.names = FALSE)
-  cat(sprintf("  wrote: %s\n", out))
+  out_embeddings_tsv <- file.path(args$output_dir, sprintf("%s_pcas.tsv", args$name))
+  fwrite(data.frame(cell_id = rownames(res$embedding), res$embedding), out_embeddings_tsv,
+    sep = "\t", quote = FALSE, row.names = FALSE)
+  cat(sprintf("  wrote: %s\n", out_embeddings_tsv))
+
+  out_loadings_tsv <- file.path(args$output_dir, sprintf("%s_loadings.tsv", args$name))
+  fwrite(data.frame(gene = rownames(res$loadings), res$loadings), out_loadings_tsv,
+    sep = "\t", quote = FALSE, row.names = FALSE)
+  cat(sprintf("  wrote: %s\n", out_loadings_tsv))
 }
 
 if (sys.nframe() == 0L) {
