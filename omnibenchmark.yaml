@@ -3,3 +3,14 @@
 entrypoints:
   pca: pca.R
   select: select.R
+  normalize: normalize.R
+  filter: filter.R
+
+boilerplate:
+  repo: https://github.com/omni-scrna/boilerplate
+  ref: v0.2.1          # pin: a tag or a branch
+  lang: r              # or: python
+template-for:
+  - { name: split-stages-plan, repo: https://github.com/omni-scrna/split-stages-plan.git, plan: benchmark_conda.yaml, ref: feat/contract-fixtures}
+implements:
+  - split-stages-plan/pca@0.1.0  # no idea what to put here!!
