@@ -24,8 +24,8 @@ print(args)
 # logging
 cat(sprintf("LOG: command line args\n----------------------------------\n"))
 cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
-for (k in args[-1]) {
-  cat(sprintf("  %s: %s\n", k, args[[k]]))
+for (i in length(args)) {
+  cat(sprintf("  %s: %s\n", names(args)[i], args[[i]]))
 }
 cat(sprintf("LOG: command line args\n----------------------------------\n"))
 
