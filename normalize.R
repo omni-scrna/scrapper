@@ -22,7 +22,7 @@ args <- parse_args(p)                        # argparser's own parser
 # logging
 cat(sprintf("LOG: command line args\n----------------------------------\n"))
 cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
-for (k in args) {
+for (k in args[-1]) {
   cat(sprintf("  %s: %s\n", k, args[[k]]))
 }
 cat(sprintf("LOG: command line args\n----------------------------------\n"))
