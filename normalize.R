@@ -39,7 +39,7 @@ cellids <- readLines(gzfile(args$filtered.cellids))
 cat("length(cellids):", length(cellids), "\n")
 
 # read H5AD into SCE
-sce <- read_h5ad(args$input_h5, as = "SingleCellExperiment")
+sce <- read_h5ad(args$rawdata.h5ad, as = "SingleCellExperiment")
 sce <- sce[,cellids]
 sce <- normalizeRnaCounts.se(sce)
 d <- Matrix(logcounts(sce), sparse = TRUE)
