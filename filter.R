@@ -22,6 +22,8 @@ p <- add_stage_args(p, "filter")     # the stage I/O contract
 #p <- add_argument(p, "--n_components", type = "integer", help = "number of PCs")
 args <- parse_args(p)                        # argparser's own parser
 
+print(args)
+
 # logging
 cat(sprintf("LOG: command line args\n----------------------------------\n"))
 cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
