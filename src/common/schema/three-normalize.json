@@ -1,0 +1,9 @@
+{
+  "stage": "three-normalize",
+  "version": "0.1.0",
+  "benchmark": "omni-scrna/split-stages-plan",
+  "args": [
+    { "flag": "--rawdata.h5ad", "dest": "input_h5", "type": "path", "help": "rawdata H5AD file (output from DATA stage)" },
+    { "flag": "--filtered.cellids", "dest": "cellids", "type": "path", "help": "TSV file of kept cell ids (output from FILT stage" }
+  ]
+}
