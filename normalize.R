@@ -46,7 +46,7 @@ sce <- sce[,cellids]
 
 # only really valid for 4.5.x
 cnts <- counts(sce)
-d <- normalizeCounts(cnts, centerSizeFactors(colSums(cnts))
+d <- normalizeCounts(cnts, centerSizeFactors(colSums(cnts)))
 
 output_file <- file.path(args$output_dir, paste0(args$name, "_normalized.h5"))
 writeTENxMatrix(d, output_file, group="matrix")
