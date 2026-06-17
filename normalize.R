@@ -8,6 +8,7 @@ suppressPackageStartupMessages({
   library(HDF5Array)
   library(scrapper)
   library(SingleCellExperiment)
+  library(anndataR)
 })
 
 # arg parsing

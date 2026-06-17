@@ -11,6 +11,7 @@ suppressPackageStartupMessages({
   library(DelayedArray)
   library(argparser)
   library(jsonlite)
+  library(anndataR)
 })
 
 # arg parsing
