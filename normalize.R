@@ -14,11 +14,11 @@ suppressPackageStartupMessages({
 # arg parsing
 source("src/common/cli.R")
 p <- arg_parser("FILT module")
-p <- add_base_args(p)                   # --output_dir, --name
-p <- add_stage_args(p, "three-normalize")     # the stage I/O contract
+p <- add_base_args(p)                      # --output_dir, --name
+p <- add_stage_args(p, "three-normalize")  # the stage I/O contract
 # your own method params — argparser directly (its add_argument requires `help`):
 #p <- add_argument(p, "--param", type = "integer", help = "number of PCs")
-args <- parse_args(p)                        # argparser's own parser
+args <- parse_args(p)                      # argparser's own parser
 
 print(args)
 
