@@ -1,5 +1,5 @@
 {
-  "interface": "_base",
+  "stage": "_base",
   "version": "0.1.0",
   "args": [
     { "flag": "--output_dir", "type": "path", "help": "Output directory for results" },
