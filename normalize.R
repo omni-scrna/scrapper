@@ -41,8 +41,12 @@ cat("length(cellids):", length(cellids), "\n")
 # read H5AD into SCE
 sce <- read_h5ad(args$rawdata.h5ad, as = "SingleCellExperiment")
 sce <- sce[,cellids]
-sce <- normalizeRnaCounts.se(sce)
-d <- Matrix(logcounts(sce), sparse = TRUE)
+#sce <- normalizeRnaCounts.se(sce)
+#d <- Matrix(logcounts(sce), sparse = TRUE)
+
+# only really valid for 4.5.x
+cnts <- counts(sce)
+d <- normalizeCounts(cnts, centerSizeFactors(colSums(cnts))
 
 output_file <- file.path(args$output_dir, paste0(args$name, "_normalized.h5"))
 writeTENxMatrix(d, output_file, group="matrix")
