@@ -19,6 +19,8 @@ p <- add_stage_args(p, "three-normalize")     # the stage I/O contract
 #p <- add_argument(p, "--param", type = "integer", help = "number of PCs")
 args <- parse_args(p)                        # argparser's own parser
 
+print(args)
+
 # logging
 cat(sprintf("LOG: command line args\n----------------------------------\n"))
 cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
