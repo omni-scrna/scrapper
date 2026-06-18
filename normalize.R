@@ -25,7 +25,7 @@ cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), colla
 cat(sprintf("LOG: command line args\n----------------------------------\n"))
 for (i in 1:length(args))
   cat(sprintf("  %s: %s\n", names(args)[i], args[[i]]))
-cat(sprintf("LOG: command line args\n----------------------------------\n"))
+cat(sprintf("----------------------------------\n"))
 
 # TODO: throw error when args are not right
 
