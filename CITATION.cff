@@ -8,7 +8,13 @@ authors:
   - family-names: "carrillo"
     given-names: "ben"
     email: "ben.uzh@proton.me"
-date-released: "2026-04-28"
+  - family-names: "Robinson"
+    given-names: "Mark"
+    email: "ben.uzh@proton.me"
+  - family-names: "Koderman"
+    given-names: "Marusa"
+    email: "marusa.koderman@uzh.ch"
+date-released: "2026-06-19"
 version: "1.0.0"
 license: MIT
 url: "https://github.com/omni-scrna/scrapper"
@@ -23,6 +29,3 @@ references:
   - title: "omnibenchmark port"
     type: software
     url: "https://github.com/scrna-bench/pipelines-r"
-  - title: "Original implementation"
-    type: software
-    url: "https://github.com/CHANGEME/scrapper"

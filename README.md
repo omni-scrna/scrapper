@@ -2,39 +2,6 @@
 
 Scrapper-backed (libscran) module for omnibenchmark scRNA pipelines.
 
-## Setup
-
-```sh
-pixi install
-pixi run check
-```
-
-`pixi run check` loads all runtime libraries and prints `OK`. Run it after install to confirm the environment is healthy.
-
-## Usage
-
-### PCA
-
-```sh
-pixi run Rscript pca.R \
-  --output_dir <dir> \
-  --name <name> \
-  --normalized.h5 <normalized.h5> \
-  --selected.genes <selected.genes.gz> \
-  --solver <irlba> \
-  --n_components <int> \
-  --random_seed <int>
-```
-
-Output: `<output_dir>/<name>_<solver>_n_<n_components>.tsv`
-
-## Conda environment export
-
-```sh
-pixi run export-env
-```
-
-Exports the resolved environment to `envs/scrapper.yml`. The environment is named after the repo root folder.
 
 ## Citation
 
