@@ -24,7 +24,7 @@ p <- arg_parser("PCA module")
 p <- add_base_args(p)                    # --output_dir, --name
 p <- add_stage_args(p, "PCA")     # the stage I/O contract
 # your own method params — argparser directly (its add_argument requires `help`):
-p <- add_argument(p, "--solver", type = "integer", help = "name of solver")
+p <- add_argument(p, "--solver", type = "character", help = "name of solver")
 p <- add_argument(p, "--n_components", type = "integer", help = "number of PCs")
 p <- add_argument(p, "--random_seed", type = "integer", help = "seed")
 args <- parse_args(p)                    # argparser's own parser
