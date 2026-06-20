@@ -29,15 +29,9 @@ cat(sprintf("----------------------------------\n"))
 
 
 main <- function() {
-  args <- parse_select_args()
-  cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
-  for (k in c("output_dir", "name", "input_h5", "number_selected")) {
-    cat(sprintf("  %s: %s\n", k, args[[k]]))
-  }
-
   dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
-  mat <- TENxMatrix(args$input_h5, group = "matrix")
+  mat <- TENxMatrix(args$normalized.h5, group = "matrix")
   mat <- as(mat, "dgCMatrix")
   cat(sprintf("  matrix (genes x cells): %d x %d\n", nrow(mat), ncol(mat)))
 
