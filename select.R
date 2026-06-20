@@ -9,12 +9,24 @@ suppressPackageStartupMessages({
   library(scrapper)
 })
 
-script_dir <- (function() {
-  cargs <- commandArgs(trailingOnly = FALSE)
-  m <- grep("^--file=", cargs)
-  if (length(m) > 0) dirname(sub("^--file=", "", cargs[[m]])) else getwd()
-})()
-source(file.path(script_dir, "src", "cli.R"))
+
+# arg parsing
+source("src/common/cli.R")
+p <- arg_parser("FEAT module")
+p <- add_base_args(p)                    # --output_dir, --name
+p <- add_stage_args(p, "FEAT")     # the stage I/O contract
+# your own method params — argparser directly (its add_argument requires `help`):
+#p <- add_argument(p, "--n_components", type = "integer", help = "number of PCs")
+args <- parse_args(p)                    # argparser's own parser
+
+# logging
+cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
+cat(sprintf("LOG: command line args\n----------------------------------\n"))
+for (i in 1:length(args)) {
+  cat(sprintf("  %s: %s\n", names(args)[i], args[[i]]))
+}
+cat(sprintf("----------------------------------\n"))
+
 
 main <- function() {
   args <- parse_select_args()

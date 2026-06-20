@@ -18,5 +18,5 @@ benchmarks:
   - name: split-stages
     repo: https://github.com/omni-scrna/split-stages-plan
     plan: benchmark_conda.yaml
-    ref: main
+    ref: new-stage-naming
     

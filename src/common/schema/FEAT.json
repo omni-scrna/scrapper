@@ -1,0 +1,12 @@
+{
+  "stage": "FEAT",
+  "version": "0.1.1",
+  "benchmark": "omni-scrna/split-stages-plan",
+  "args": [
+    { "flag": "--rawdata.h5ad", "dest": "input_h5", "type": "path", "help": "rawdata H5AD file" },
+    { "flag": "--normalized_selected.h5", "dest": "input_h5", "type": "path", "help": "Normalized, gene-selected matrix H5" },
+    { "flag": "--filtered.cellids", "dest": "cellids", "type": "path", "help": "TSV file of kept cell ids" },
+    { "flag": "--properties.info", "dest": "properties_info", "type": "path", "help": "JSON file with relevant column names" }
+  ]
+}
+

@@ -1,9 +1,0 @@
-{
-  "stage": "two-filter",
-  "version": "0.1.0",
-  "benchmark": "omni-scrna/split-stages-plan",
-  "args": [
-    { "flag": "--properties.info", "dest": "properties_info", "type": "path", "help": "JSON file with relevant column names (output from DATA stage)" },
-    { "flag": "--rawdata.h5ad", "dest": "input_h5", "type": "path", "help": "rawdata H5AD file (output from DATA stage)" }
-  ]
-}
