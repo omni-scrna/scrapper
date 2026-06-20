@@ -86,12 +86,6 @@ run_pca <- function(X, args) {
 
 
 main <- function() {
-  cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
-  for (k in c("output_dir", "name", "input_h5",
-              "solver", "n_components", "random_seed")) {
-    cat(sprintf("  %s: %s\n", k, args[[k]]))
-  }
-
   dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
   m <- TENxMatrix(args$normalized_selected.h5, group = "matrix")
