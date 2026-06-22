@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "benchmark": "omni-scrna/split-stages-plan",
   "args": [
-    { "flag": "--rawdata.h5ad", "dest": "input_h5", "type": "path", "help": "rawdata H5AD file" },
-    { "flag": "--filtered.cellids", "dest": "cellids", "type": "path", "help": "TSV file of kept cell ids" }
+    { "flag": "--rawdata_h5ad", "type": "path", "help": "rawdata H5AD file" },
+    { "flag": "--filtered_cellids", "type": "path", "help": "TSV file of kept cell ids" }
   ]
 }

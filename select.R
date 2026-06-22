@@ -31,7 +31,7 @@ cat(sprintf("----------------------------------\n"))
 main <- function() {
   dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
-  mat <- TENxMatrix(args$normalized.h5, group = "matrix")
+  mat <- TENxMatrix(args$normalized_h5, group = "matrix")
   mat <- as(mat, "dgCMatrix")
   cat(sprintf("  matrix (genes x cells): %d x %d\n", nrow(mat), ncol(mat)))
 

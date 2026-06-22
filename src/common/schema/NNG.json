@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "benchmark": "omni-scrna/split-stages-plan",
   "args": [
-    { "flag": "--pcas.tsv", "dest": "pcas_tsv", "type": "path", "help": "PCA embedding TSV (cell_ids as rownames)" }
+    { "flag": "--pcas_tsv", "type": "path", "help": "PCA embedding TSV (cell_ids as rownames)" }
   ]
 }
 

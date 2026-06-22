@@ -3,6 +3,6 @@
   "version": "0.1.1",
   "benchmark": "omni-scrna/split-stages-plan",
   "args": [
-    { "flag": "--normalized_selected.h5", "dest": "input_h5", "type": "path", "help": "Normalized, gene-selected matrix H5" }
+    { "flag": "--normalized_selected_h5", "type": "path", "help": "Normalized, gene-selected matrix H5" }
   ]
 }

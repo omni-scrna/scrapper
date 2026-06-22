@@ -88,7 +88,7 @@ run_pca <- function(X, args) {
 main <- function() {
   dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
-  m <- TENxMatrix(args$normalized_selected.h5, group = "matrix")
+  m <- TENxMatrix(args$normalized_selected_h5, group = "matrix")
   m <- as(m, "dgCMatrix")
   cat(sprintf("  matrix (genes x cells): %d x %d\n", nrow(m), ncol(m)))
 

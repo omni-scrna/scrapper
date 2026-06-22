@@ -38,10 +38,10 @@ cat(sprintf("----------------------------------\n"))
 dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
 # read input H5AD
-sce <- read_h5ad(args$rawdata.h5ad, as = "SingleCellExperiment")
+sce <- read_h5ad(args$rawdata_h5ad, as = "SingleCellExperiment")
 
 # read input H5AD
-props <- read_yaml(args$properties.info)
+props <- read_yaml(args$properties_info)
 batch <- props$batch_variable
 
 # do sample-wise filtering scrapper-style
