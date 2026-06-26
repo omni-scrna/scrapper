@@ -19,7 +19,7 @@ suppressPackageStartupMessages({
 source("src/common/cli.R")
 p <- arg_parser("FILT module")
 p <- add_base_args(p)                    # --output_dir, --name
-p <- add_stage_args(p, "two-filter")     # the stage I/O contract
+p <- add_stage_args(p, "FILT")     # the stage I/O contract
 # your own method params — argparser directly (its add_argument requires `help`):
 #p <- add_argument(p, "--n_components", type = "integer", help = "number of PCs")
 args <- parse_args(p)                    # argparser's own parser
@@ -38,10 +38,10 @@ cat(sprintf("----------------------------------\n"))
 dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
 # read input H5AD
-sce <- read_h5ad(args$rawdata.h5ad, as = "SingleCellExperiment")
+sce <- read_h5ad(args$rawdata_h5ad, as = "SingleCellExperiment")
 
 # read input H5AD
-props <- read_yaml(args$properties.info)
+props <- read_yaml(args$properties_info)
 batch <- props$batch_variable
 
 # do sample-wise filtering scrapper-style

@@ -13,9 +13,9 @@ suppressPackageStartupMessages({
 
 # arg parsing
 source("src/common/cli.R")
-p <- arg_parser("FILT module")
+p <- arg_parser("NORM module")
 p <- add_base_args(p)                      # --output_dir, --name
-p <- add_stage_args(p, "three-normalize")  # the stage I/O contract
+p <- add_stage_args(p, "NORM")  # the stage I/O contract
 # your own method params — argparser directly (its add_argument requires `help`):
 #p <- add_argument(p, "--param", type = "integer", help = "number of PCs")
 args <- parse_args(p)                      # argparser's own parser
@@ -32,11 +32,11 @@ cat(sprintf("----------------------------------\n"))
 dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
 # read cellids to subset on
-cellids <- readLines(gzfile(args$filtered.cellids))
+cellids <- readLines(gzfile(args$filtered_cellids))
 cat("length(cellids):", length(cellids), "\n")
 
 # read H5AD into SCE
-sce <- read_h5ad(args$rawdata.h5ad, as = "SingleCellExperiment")
+sce <- read_h5ad(args$rawdata_h5ad, as = "SingleCellExperiment")
 sce <- sce[,cellids]
 #sce <- normalizeRnaCounts.se(sce)
 #d <- Matrix(logcounts(sce), sparse = TRUE)
