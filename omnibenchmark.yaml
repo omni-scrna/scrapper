@@ -5,6 +5,7 @@ entrypoints:
   select: select.R
   normalize: normalize.R
   filter: filter.R
+  cluster: cluster.R
   
 # Pointed to shared CLI helper code
 templates:
