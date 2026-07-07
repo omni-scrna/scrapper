@@ -14,9 +14,8 @@ p <- arg_parser("CLUST module")
 p <- add_base_args(p)                      # --output_dir, --name
 p <- add_stage_args(p, "CLUST")  # the stage I/O contract
 # your own method params — argparser directly (its add_argument requires `help`):
-p <- add_argument(p, "--flavor", type = "character", help = "Clustering algorithm (multilevel|leiden_modularity|leiden_cpm|walktrap)")
+p <- add_argument(p, "--flavor", type = "character", help = "Clustering algorithm (multilevel|leiden_modularity|leiden_cpm)")
 p <- add_argument(p, "--resolution", type = "numeric", help = "Clustering resolution")
-p <- add_argument(p, "--walktrap_steps", type = "integer", help = "Number of random-walk steps (only for walktrap flavor)")
 p <- add_argument(p, "--random_seed", type = "integer", help = "Random seed")
 args <- parse_args(p)                      # argparser's own parser
 
@@ -70,15 +69,7 @@ if (args$flavor == "multilevel") {
       seed = args$random_seed
     )
   
-} else if (args$flavor == "walktrap") {
-  
-  clustering_result <- scrapper::clusterGraph(
-    neighbors_graph,
-    method = "walktrap",
-    walktrap.steps = args$walktrap_steps,
-    seed = args$random_seed
-  )
-} else {
+}  else {
   stop("Unknown --flavor: ", args$flavor)
 }
 
