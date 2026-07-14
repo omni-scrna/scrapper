@@ -35,9 +35,13 @@ dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 cellids <- readLines(gzfile(args$filtered_cellids))
 cat("length(cellids):", length(cellids), "\n")
 
+# read featureids to subset on
+featureids <- readLines(gzfile(args$filtered_featureids))
+cat("length(featureids):", length(featureids), "\n")
+
 # read H5AD into SCE
 sce <- read_h5ad(args$rawdata_h5ad, as = "SingleCellExperiment")
-sce <- sce[,cellids]
+sce <- sce[featureids,cellids]
 #sce <- normalizeRnaCounts.se(sce)
 #d <- Matrix(logcounts(sce), sparse = TRUE)
 
