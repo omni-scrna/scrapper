@@ -21,7 +21,8 @@ p <- arg_parser("FILT module")
 p <- add_base_args(p)                    # --output_dir, --name
 p <- add_stage_args(p, "FILT")     # the stage I/O contract
 # your own method params — argparser directly (its add_argument requires `help`):
-#p <- add_argument(p, "--n_components", type = "integer", help = "number of PCs")
+p <- add_argument(p, "--min_cells", type = "integer", default = 5,
+                   help = "minimum number of cells a feature must be detected in to be kept")
 args <- parse_args(p)                    # argparser's own parser
 
 # logging
@@ -52,8 +53,22 @@ rna.qc.metrics <- computeRnaQcMetrics(assay(sce),
 rna.qc.thresholds <- suggestRnaQcThresholds(rna.qc.metrics, block = batch)
 keep <- filterRnaQcMetrics(rna.qc.thresholds, rna.qc.metrics, block = batch)
 
+# do feature-wise filtering
+keep_features <- rowSums(assay(sce[, keep], "counts") > 0) >= args$min_cells
+cat(sprintf("LOG: keeping %d / %d features (min_cells = %d)\n",
+            sum(keep_features), length(keep_features), args$min_cells))
+
 # write selected cellids
 output_file <- file.path(args$output_dir, paste0(args$name, "_cellids.txt.gz"))
 writeLines(colnames(sce)[keep], gzfile(output_file))
-file.info(output_file)[,c("size", "ctime")]
+
+# write selected feature ids
+features_output_file <- file.path(args$output_dir, paste0(args$name, "_featureids.txt.gz"))
+writeLines(rownames(sce)[keep_features], gzfile(features_output_file))
+
+cat("LOG: cellids output file info\n")
+print(file.info(output_file)[,c("size", "ctime")])
+
+cat("LOG: featureids output file info\n")
+print(file.info(features_output_file)[,c("size", "ctime")])
 
