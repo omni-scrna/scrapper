@@ -43,7 +43,7 @@ run_pca <- function(X, args) {
   set.seed(args$random_seed)
 
   if (args$solver == "irlba") {
-    pca <- runPca(X, number = args$n_components, num.threads = 1L)
+    pca <- runPca(X, number = args$n_components, num.threads = 1L, seed = args$random_seed)
     # scrapper::runPca returns components (n_components x n_cells), rotation (n_genes x n_components)
     embedding <- t(pca$components)
     loadings  <- pca$rotation
