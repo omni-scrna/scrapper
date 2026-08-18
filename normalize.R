@@ -50,7 +50,11 @@ cnts <- counts(sce)
 d <- normalizeCounts(cnts, centerSizeFactors(colSums(cnts)))
 
 output_file <- file.path(args$output_dir, paste0(args$name, "_normalized.h5"))
-writeTENxMatrix(d, output_file, group="matrix")
+# level=0: no gzip. Left at the default NULL, writeTENxMatrix uses
+# getHDF5DumpCompressionLevel() == 6, paid on every write here and again on
+# every read downstream. These are pipeline intermediates, not artifacts to
+# ship, so disk is the cheap axis to spend.
+writeTENxMatrix(d, output_file, group="matrix", level=0)
 cat(sprintf("wrote: %s\n", output_file))
 file.info(output_file)[,c("size", "ctime")]
 
