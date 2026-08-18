@@ -1,20 +1,13 @@
 #!/usr/bin/env Rscript
 # PCA module (scrapper-backed) for omnibenchmark.
 #
-# Output format: see docs/pca_output.md (neutral HDF5, format_version "1").
-#
-# Implementation notes
-# --------------------
-# - scrapper::runPca operates on the gene-by-cell matrix directly (it
-#   internally centers/scales rows). No explicit scale step here.
-# - Subsetting to selected genes happens here for now; this responsibility
-#   should move to a dedicated upstream cleanup stage. See load_subset_matrix.
+# scrapper wraps libscran, which ships one PCA: a C++ irlba over a sparse matrix.
+
 
 suppressPackageStartupMessages({
   library(Matrix)
   library(HDF5Array)
   library(scrapper)
-  library(BiocSingular)
   library(data.table)
 })
 
@@ -22,11 +15,21 @@ suppressPackageStartupMessages({
 source("src/common/cli.R")
 p <- arg_parser("PCA module")
 p <- add_base_args(p)                    # --output_dir, --name
-p <- add_stage_args(p, "PCA")     # the stage I/O contract
-# your own method params — argparser directly (its add_argument requires `help`):
-p <- add_argument(p, "--solver", type = "character", help = "name of solver")
+p <- add_stage_args(p, "PCA")            # the stage I/O contract
+p <- add_argument(p, "--solver", type = "character", default = "irlba",
+                  help = "name of solver (irlba)")
 p <- add_argument(p, "--n_components", type = "integer", help = "number of PCs")
 p <- add_argument(p, "--random_seed", type = "integer", help = "seed")
+
+# Thread count. scrapper's PCA is a C++ irlba over Eigen (assorthead), built without
+# EIGEN_USE_BLAS. Neither the sparse nor the dense path ever enters R's BLAS.
+# Snakemake exports OMP_NUM_THREADS = <rule threads> (default 1), which we inherit.
+p <- add_argument(p, "--num_threads", type = "integer",
+                  default = as.integer(Sys.getenv("OMP_NUM_THREADS", "1")),
+                  help = "threads for runPca (default: OMP_NUM_THREADS)")
+# Dense vs sparse control: switches the tatami representation handed to irlba.
+p <- add_argument(p, "--dense", type = "character", default = "false",
+                  help = "materialise the matrix dense before PCA (true/false)")
 args <- parse_args(p)                    # argparser's own parser
 
 # logging
@@ -40,33 +43,23 @@ cat(sprintf("----------------------------------\n"))
 
 run_pca <- function(X, args) {
   # X: gene-by-cell sparse matrix (rows = genes).
-  set.seed(args$random_seed)
+  # runPca ignores R's RNG (its Rcpp export is rng=false); the seed it takes is for
+  # irlba's initial random vector, so it goes in as an argument, not via set.seed().
+  seed <- if (is.na(args$random_seed)) 5489L else args$random_seed  # 5489 = runPca's default
 
-  if (args$solver == "irlba") {
-    pca <- runPca(X, number = args$n_components, num.threads = 1L)
-    # scrapper::runPca returns components (n_components x n_cells), rotation (n_genes x n_components)
-    embedding <- t(pca$components)
-    loadings  <- pca$rotation
-    variance  <- as.numeric(pca$variance.explained)
-    total_var <- if (!is.null(pca$total.variance)) as.numeric(pca$total.variance) else sum(variance)
-  } else {
-    # random / exact via BiocSingular::runSVD on the transposed (cells x genes) matrix
-    bsparam <- switch(args$solver,
-      random = RandomParam(),
-      exact  = ExactParam(),
-      stop("unknown solver: ", args$solver)
-    )
-    # runSVD expects cells-as-rows; center across genes (i.e. center=TRUE centers columns)
-    svd <- runSVD(t(X), k = args$n_components, center = TRUE, BSPARAM = bsparam)
-    embedding <- svd$u %*% diag(svd$d)        # (n_cells, n_components)
-    loadings  <- svd$v                         # (n_genes, n_components)
-    n         <- ncol(X)
-    variance  <- svd$d^2 / (n - 1)
-    # total variance: sum of per-gene variances, computed sparse-safe
-    rs2 <- Matrix::rowSums(X^2)
-    rs1 <- Matrix::rowSums(X)
-    total_var <- sum((rs2 - rs1^2 / n) / (n - 1))
+  if (!identical(args$solver, "irlba")) {
+    stop("unknown solver: ", args$solver,
+         " (this module only ships libscran's irlba)")
   }
+
+  cat(sprintf("LOG: runPca seed = %d, num.threads = %d\n", seed, args$num_threads))
+  pca <- runPca(X, number = args$n_components, seed = seed,
+                num.threads = args$num_threads)
+  # scrapper::runPca returns components (n_components x n_cells), rotation (n_genes x n_components)
+  embedding <- t(pca$components)
+  loadings  <- pca$rotation
+  variance  <- as.numeric(pca$variance.explained)
+  total_var <- if (!is.null(pca$total.variance)) as.numeric(pca$total.variance) else sum(variance)
 
   variance_ratio <- variance / total_var
   # decorate embeddings/loadings w/ row/colnames
@@ -89,7 +82,15 @@ main <- function() {
   dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
   m <- TENxMatrix(args$normalized_selected_h5, group = "matrix")
-  m <- as(m, "dgCMatrix")
+  # Coerce straight from the DelayedArray to the target representation, so peak
+  # memory reflects the format under test rather than a sparse copy plus a
+  # dense one.
+  if (identical(args$dense, "true")) {
+    m <- as(m, "matrix")
+    cat(sprintf("LOG: dense matrix: %.0f MB\n", as.numeric(object.size(m)) / 1e6))
+  } else {
+    m <- as(m, "dgCMatrix")
+  }
   cat(sprintf("  matrix (genes x cells): %d x %d\n", nrow(m), ncol(m)))
 
   res <- run_pca(m, args)
