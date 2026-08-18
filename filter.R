@@ -58,6 +58,18 @@ keep_features <- rowSums(assay(sce[, keep], "counts") > 0) >= args$min_cells
 cat(sprintf("LOG: keeping %d / %d features (min_cells = %d)\n",
             sum(keep_features), length(keep_features), args$min_cells))
 
+# calculate size factors from the filtered raw counts
+X_filtered <- assay(sce[keep_features, keep], "counts")
+library_size <- colSums(X_filtered)
+mean_library_size <- mean(library_size)
+
+if (!is.finite(mean_library_size) || mean_library_size <= 0) {
+  stop("mean library size must be finite and greater than zero")
+}
+
+size_factor <- library_size / mean_library_size
+cat(sprintf("LOG: size factor range: [%g, %g]\n", min(size_factor), max(size_factor)))
+
 # write selected cellids
 output_file <- file.path(args$output_dir, paste0(args$name, "_cellids.txt.gz"))
 writeLines(colnames(sce)[keep], gzfile(output_file))
@@ -66,9 +78,15 @@ writeLines(colnames(sce)[keep], gzfile(output_file))
 features_output_file <- file.path(args$output_dir, paste0(args$name, "_featureids.txt.gz"))
 writeLines(rownames(sce)[keep_features], gzfile(features_output_file))
 
+# write size factors
+size_factor_output_file <- file.path(args$output_dir, paste0(args$name, "_size_factors.tsv"))
+write.table(data.frame(cell_id = colnames(sce)[keep],
+                       size_factor = as.numeric(size_factor)),
+            file = size_factor_output_file, sep = "\t", quote = FALSE,
+            row.names = FALSE)
+
 cat("LOG: cellids output file info\n")
 print(file.info(output_file)[,c("size", "ctime")])
 
 cat("LOG: featureids output file info\n")
 print(file.info(features_output_file)[,c("size", "ctime")])
-
