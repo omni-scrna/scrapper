@@ -45,7 +45,11 @@ main <- function() {
 
   out <- file.path(args$output_dir, paste0(args$name, "_normalized_selected.h5"))
   cat("output_file:", out, "\n")
-  writeTENxMatrix(mat[sel_feats, ], out, group = "matrix")
+  # level=0: no gzip. Left at the default NULL, writeTENxMatrix uses
+  # getHDF5DumpCompressionLevel() == 6, paid on every write here and again on
+  # every read downstream. These are pipeline intermediates, not artifacts to
+  # ship, so disk is the cheap axis to spend.
+  writeTENxMatrix(mat[sel_feats, ], out, group = "matrix", level = 0)
   cat(sprintf("  wrote: %s\n", out))
 }
 
