@@ -43,7 +43,7 @@ sce <- read_h5ad(args$rawdata_h5ad, as = "SingleCellExperiment")
 
 # read input H5AD
 props <- read_yaml(args$properties_info)
-batch <- props$batch_variable
+batch <- props$batch_var
 
 # do sample-wise filtering scrapper-style
 is.mito <- grepl("^[Mm][Tt]-", rownames(sce))
@@ -52,6 +52,9 @@ rna.qc.metrics <- computeRnaQcMetrics(assay(sce),
 
 rna.qc.thresholds <- suggestRnaQcThresholds(rna.qc.metrics, block = batch)
 keep <- filterRnaQcMetrics(rna.qc.thresholds, rna.qc.metrics, block = batch)
+cat(sprintf("LOG: keeping %d / %d cells\n", sum(keep), length(keep)))
+tt <- table(keep, batch)
+cat(sprintf("LOG: filtered cells by block (batch): \n%s\n", capture.output(print(tt))))
 
 # do feature-wise filtering
 keep_features <- rowSums(assay(sce[, keep], "counts") > 0) >= args$min_cells
