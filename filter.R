@@ -43,6 +43,7 @@ sce <- read_h5ad(args$rawdata_h5ad, as = "SingleCellExperiment")
 
 # read input H5AD
 props <- read_yaml(args$properties_info)
+cat(sprintf("LOG: props: \n%s\n", capture.output(print(props))))
 batch <- props$batch_var
 
 # do sample-wise filtering scrapper-style
