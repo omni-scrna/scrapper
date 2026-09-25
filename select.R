@@ -16,6 +16,8 @@ p <- arg_parser("FEAT module")
 p <- add_base_args(p)                    # --output_dir, --name
 p <- add_stage_args(p, "FEAT")     # the stage I/O contract
 # your own method params — argparser directly (its add_argument requires `help`):
+p <- add_argument(p, "--backend", type = "character", default = "memory",
+                  help = "counts backend: memory (anndataR, in-RAM) or delayed (H5SparseMatrix, out-of-core)")
 p <- add_argument(p, "--number_selected", type = "integer", help = "number of PCs")
 args <- parse_args(p)                    # argparser's own parser
 
@@ -32,7 +34,8 @@ main <- function() {
   dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
   mat <- TENxMatrix(args$normalized_h5, group = "matrix")
-  mat <- as(mat, "dgCMatrix")
+  # TENxMatrix is already a DelayedArray; "memory" is the coercion, not the read.
+  if (args$backend == "memory") mat <- as(mat, "dgCMatrix")
   cat(sprintf("  matrix (genes x cells): %d x %d\n", nrow(mat), ncol(mat)))
 
   gene_var <- modelGeneVariances(mat)

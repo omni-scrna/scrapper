@@ -13,11 +13,14 @@ suppressPackageStartupMessages({
 
 # arg parsing
 source("src/common/cli.R")
+source("src/read_counts.R")
 p <- arg_parser("NORM module")
 p <- add_base_args(p)                      # --output_dir, --name
 p <- add_stage_args(p, "NORM")  # the stage I/O contract
 # your own method params — argparser directly (its add_argument requires `help`):
 #p <- add_argument(p, "--param", type = "integer", help = "number of PCs")
+p <- add_argument(p, "--backend", type = "character", default = "memory",
+                  help = "counts backend: memory (anndataR, in-RAM) or delayed (H5SparseMatrix, out-of-core)")
 args <- parse_args(p)                      # argparser's own parser
 
 # logging
@@ -40,7 +43,7 @@ featureids <- readLines(gzfile(args$filtered_featureids))
 cat("length(featureids):", length(featureids), "\n")
 
 # read H5AD into SCE
-sce <- read_h5ad(args$rawdata_h5ad, as = "SingleCellExperiment")
+sce <- read_counts(args$rawdata_h5ad, args$backend)
 sce <- sce[featureids,cellids]
 #sce <- normalizeRnaCounts.se(sce)
 #d <- Matrix(logcounts(sce), sparse = TRUE)
