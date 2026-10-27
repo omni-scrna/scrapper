@@ -45,7 +45,6 @@ p <- add_argument(p, "--solver", type = "character", help = "name of solver")
 p <- add_argument(p, "--n_components", type = "integer", help = "number of PCs")
 p <- add_argument(p, "--n_iter", type = "integer", default = 2L, help = "number of power iterations for randomized SVD")
 p <- add_argument(p, "--n_oversamples", type = "integer", default = 10L, help = "number of oversamples for randomized SVD")
-p <- add_argument(p, "--num_threads", type = "integer", default = 1L, help = "number of compute threads/workers")
 p <- add_argument(p, "--random_seed", type = "integer", help = "seed")
 # Thread count. scrapper's PCA is a C++ irlba over Eigen (assorthead), built without
 # EIGEN_USE_BLAS. Neither the sparse nor the dense path ever enters R's BLAS.
