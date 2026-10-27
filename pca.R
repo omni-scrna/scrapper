@@ -124,7 +124,15 @@ main <- function() {
   dir.create(args$output_dir, showWarnings = FALSE, recursive = TRUE)
 
   m <- TENxMatrix(args$normalized_selected_h5, group = "matrix")
-  m <- as(m, "dgCMatrix")
+  # Coerce straight from the DelayedArray to the target representation, so peak
+  # memory reflects the format under test rather than a sparse copy plus a
+  # dense one.
+  if (identical(args$dense, "true")) {
+    m <- as(m, "matrix")
+    cat(sprintf("LOG: dense matrix: %.0f MB\n", as.numeric(object.size(m)) / 1e6))
+  } else {
+    m <- as(m, "dgCMatrix")
+  }
   cat(sprintf("  matrix (genes x cells): %d x %d\n", nrow(m), ncol(m)))
 # runtime recording 
   pca_start <- Sys.time()
