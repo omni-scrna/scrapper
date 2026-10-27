@@ -21,7 +21,7 @@
 #     n_oversamples -> p (number of oversampling vectors)
 #
 # Outputs:
-#   - <name>_pcas.tsv:     PC scores (cells x components).
+#   - <name>_embedding.tsv:     PC scores (cells x components).
 #   - <name>_loadings.tsv: PC loadings (genes x components).
 #   - <name>_runtime.csv:  PCA runtime and execution parameters.
 #
@@ -117,7 +117,7 @@ main <- function() {
   m <- TENxMatrix(args$normalized_selected_h5, group = "matrix")
   m <- as(m, "dgCMatrix")
   cat(sprintf("  matrix (genes x cells): %d x %d\n", nrow(m), ncol(m)))
-# runtime recirding 
+# runtime recording 
   pca_start <- Sys.time()
   res <- run_pca(m, args)
   pca_end <- Sys.time()
@@ -127,7 +127,7 @@ main <- function() {
     nrow(res$embedding), ncol(res$embedding),
     nrow(res$loadings),  ncol(res$loadings)))
 
-  out_embeddings_tsv <- file.path(args$output_dir, sprintf("%s_pcas.tsv", args$name))
+  out_embeddings_tsv <- file.path(args$output_dir, sprintf("%s_embedding.tsv", args$name))
   fwrite(data.frame(cell_id = rownames(res$embedding), res$embedding), out_embeddings_tsv,
     sep = "\t", quote = FALSE, row.names = FALSE)
   cat(sprintf("  wrote: %s\n", out_embeddings_tsv))
