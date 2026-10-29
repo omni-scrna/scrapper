@@ -30,7 +30,7 @@ p <- add_argument(p, "--num_threads", type = "integer",
 # Dense vs sparse control: switches the tatami representation handed to irlba.
 p <- add_argument(p, "--dense", type = "character", default = "false",
                   help = "materialise the matrix dense before PCA (true/false)")
-args <- parse_args(p)                    # argparser's own parser
+args <- parse_args_outputs(p)                    # argparser, minus --output id=PATH (api 0.8)
 
 # logging
 cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
@@ -98,12 +98,12 @@ main <- function() {
     nrow(res$embedding), ncol(res$embedding),
     nrow(res$loadings),  ncol(res$loadings)))
 
-  out_embeddings_tsv <- file.path(args$output_dir, sprintf("%s_embedding.tsv", args$name))
+  out_embeddings_tsv <- output_path(args, "embedding_tsv", "_embedding.tsv")
   fwrite(data.frame(cell_id = rownames(res$embedding), res$embedding), out_embeddings_tsv,
     sep = "\t", quote = FALSE, row.names = FALSE)
   cat(sprintf("  wrote: %s\n", out_embeddings_tsv))
 
-  out_loadings_tsv <- file.path(args$output_dir, sprintf("%s_loadings.tsv", args$name))
+  out_loadings_tsv <- output_path(args, "loadings_tsv", "_loadings.tsv")
   fwrite(data.frame(gene = rownames(res$loadings), res$loadings), out_loadings_tsv,
     sep = "\t", quote = FALSE, row.names = FALSE)
   cat(sprintf("  wrote: %s\n", out_loadings_tsv))

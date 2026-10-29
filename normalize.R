@@ -21,7 +21,7 @@ p <- add_stage_args(p, "NORM")  # the stage I/O contract
 #p <- add_argument(p, "--param", type = "integer", help = "number of PCs")
 p <- add_argument(p, "--backend", type = "character", default = "memory",
                   help = "counts backend: memory (anndataR, in-RAM) or delayed (H5SparseMatrix, out-of-core)")
-args <- parse_args(p)                      # argparser's own parser
+args <- parse_args_outputs(p)                      # argparser, minus --output id=PATH (api 0.8)
 
 # logging
 cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
@@ -52,7 +52,7 @@ sce <- sce[featureids,cellids]
 cnts <- counts(sce)
 d <- normalizeCounts(cnts, centerSizeFactors(colSums(cnts)))
 
-output_file <- file.path(args$output_dir, paste0(args$name, "_normalized.h5"))
+output_file <- output_path(args, "normalized_h5", "_normalized.h5")
 # level=0: no gzip. Left at the default NULL, writeTENxMatrix uses
 # getHDF5DumpCompressionLevel() == 6, paid on every write here and again on
 # every read downstream. These are pipeline intermediates, not artifacts to

@@ -18,7 +18,7 @@ p <- add_argument(p, "--flavor", type = "character", help = "Clustering algorith
 p <- add_argument(p, "--resolution", type = "numeric", help = "Clustering resolution")
 p <- add_argument(p, "--walktrap_steps", type = "integer", help = "Number of random-walk steps (only for walktrap flavor)")
 p <- add_argument(p, "--random_seed", type = "integer", help = "Random seed")
-args <- parse_args(p)                      # argparser's own parser
+args <- parse_args_outputs(p)                      # argparser, minus --output id=PATH (api 0.8)
 
 # logging
 cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
@@ -96,10 +96,7 @@ cat("\n")
 
 
 # Save cluster matrix as .tsv
-output_file <- file.path(
-  args$output_dir,
-  paste0(args$name, "_clusters.tsv")
-)
+output_file <- output_path(args, "clusters_tsv", "_clusters.tsv")
 
 cat("Writing output to:\n")
 cat(output_file, "\n\n")
