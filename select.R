@@ -19,7 +19,7 @@ p <- add_stage_args(p, "FEAT")     # the stage I/O contract
 p <- add_argument(p, "--backend", type = "character", default = "memory",
                   help = "counts backend: memory (anndataR, in-RAM) or delayed (H5SparseMatrix, out-of-core)")
 p <- add_argument(p, "--number_selected", type = "integer", help = "number of PCs")
-args <- parse_args(p)                    # argparser's own parser
+args <- parse_args_outputs(p)                    # argparser, minus --output id=PATH (api 0.8)
 
 # logging
 cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
@@ -46,7 +46,7 @@ main <- function() {
   sel_feats <- rownames(mat)[hvgs]
   cat(sprintf("  selected %d features\n", length(sel_feats)))
 
-  out <- file.path(args$output_dir, paste0(args$name, "_normalized_selected.h5"))
+  out <- output_path(args, "normalized_selected_h5", "_normalized_selected.h5")
   cat("output_file:", out, "\n")
   # level=0: no gzip. Left at the default NULL, writeTENxMatrix uses
   # getHDF5DumpCompressionLevel() == 6, paid on every write here and again on
