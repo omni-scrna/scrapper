@@ -26,7 +26,7 @@ p <- add_argument(p, "--backend", type = "character", default = "memory",
                   help = "counts backend: memory (anndataR, in-RAM) or delayed (H5SparseMatrix, out-of-core)")
 p <- add_argument(p, "--min_cells", type = "integer", default = 5,
                    help = "minimum number of cells a feature must be detected in to be kept")
-args <- parse_args(p)                    # argparser's own parser
+args <- parse_args_outputs(p)                    # argparser, minus --output id=PATH (api 0.8)
 
 # logging
 cat(sprintf("Full command: %s\n", paste(commandArgs(trailingOnly = FALSE), collapse = " ")))
@@ -80,15 +80,15 @@ size_factor <- library_size / mean_library_size
 cat(sprintf("LOG: size factor range: [%g, %g]\n", min(size_factor), max(size_factor)))
 
 # write selected cellids
-output_file <- file.path(args$output_dir, paste0(args$name, "_cellids.txt.gz"))
+output_file <- output_path(args, "filtered_cellids", "_cellids.txt.gz")
 writeLines(colnames(sce)[keep], gzfile(output_file))
 
 # write selected feature ids
-features_output_file <- file.path(args$output_dir, paste0(args$name, "_featureids.txt.gz"))
+features_output_file <- output_path(args, "filtered_featureids", "_featureids.txt.gz")
 writeLines(rownames(sce)[keep_features], gzfile(features_output_file))
 
 # write size factors
-size_factor_output_file <- file.path(args$output_dir, paste0(args$name, "_size_factors.tsv"))
+size_factor_output_file <- output_path(args, "size_factor_tsv", "_size_factors.tsv")
 write.table(data.frame(cell_id = colnames(sce)[keep],
                        size_factor = as.numeric(size_factor)),
             file = size_factor_output_file, sep = "\t", quote = FALSE,
